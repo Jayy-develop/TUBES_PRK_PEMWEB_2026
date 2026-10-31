@@ -26,9 +26,11 @@ if (!$result) {
 
 <!DOCTYPE html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Daftar Pengguna | FEBMart</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -226,7 +228,6 @@ if (!$result) {
 
     </div>
 
-    <!-- Konten utama -->
     <div class="content-section">
 
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
@@ -264,7 +265,16 @@ if (!$result) {
 
         <?php endif; ?>
 
-\        <div class="table-responsive">
+        <?php if (isset($_GET['status']) && $_GET['status'] === 'edit_berhasil'): ?>
+
+            <div class="alert alert-success" role="alert">
+                <i class="bi bi-check-circle me-1"></i>
+                Data pengguna berhasil diperbarui!
+            </div>
+
+        <?php endif; ?>
+
+        <div class="table-responsive">
 
             <table class="table table-bordered table-hover align-middle">
 
@@ -277,6 +287,7 @@ if (!$result) {
                         <th>Role</th>
                         <th>Status</th>
                         <th>Tanggal Dibuat</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
 
@@ -289,6 +300,7 @@ if (!$result) {
                         <?php while ($user = $result->fetch_assoc()): ?>
 
                             <tr>
+
                                 <td><?= $no++; ?></td>
 
                                 <td>
@@ -328,6 +340,14 @@ if (!$result) {
                                 <td>
                                     <?= htmlspecialchars($user['created_at']); ?>
                                 </td>
+
+                                <td>
+                                    <a href="edit_user.php?id=<?= $user['id']; ?>"
+                                       class="btn btn-warning btn-sm">
+                                        <i class="bi bi-pencil-square"></i> Edit
+                                    </a>
+                                </td>
+
                             </tr>
 
                         <?php endwhile; ?>
@@ -335,7 +355,7 @@ if (!$result) {
                     <?php else: ?>
 
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
+                            <td colspan="8" class="text-center text-muted py-4">
                                 <i class="bi bi-inbox fs-3 d-block mb-2"></i>
                                 Belum ada data pengguna.
                             </td>
