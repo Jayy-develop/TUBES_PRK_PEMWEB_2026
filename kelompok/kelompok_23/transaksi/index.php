@@ -50,6 +50,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update') {
+    $product_id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+    $qty = isset($_POST['qty']) ? (int)$_POST['qty'] : 1;
+
+    if ($product_id > 0 && isset($_SESSION['cart'][$product_id])) {
+        $stmt = $conn->prepare("SELECT stock FROM products WHERE id = ?");
+        $stmt->bind_param("i", $product_id);
+        $stmt->execute();
+        $res = $stmt->get_result()->fetch_assoc();
+        $max_stock = $res ? (int)$res['stock'] : $_SESSION['cart'][$product_id]['stock'];
+
+        if ($qty <= 0) {
+            $_SESSION['flash_error'] = "Jumlah minimal 1.";
+        } elseif ($qty > $max_stock) {
+            $_SESSION['flash_error'] = "Jumlah melebihi stok yang tersedia (Stok: $max_stock)!";
+        } else {
+            $_SESSION['cart'][$product_id]['qty'] = $qty;
+            $_SESSION['flash_success'] = "Jumlah produk berhasil diperbarui.";
+        }
+    }
+    header("Location: index.php");
+    exit;
+}
+
 $search = isset($_GET['cari']) ? trim($_GET['cari']) : '';
 if ($search !== '') {
     $stmt = $conn->prepare("
@@ -400,8 +424,15 @@ if ($search !== '') {
                                                 <?= htmlspecialchars($cart_item['sku']); ?> | Rp <?= number_format($cart_item['price'], 0, ',', '.'); ?>
                                             </div>
                                         </div>
-                                        <div class="text-end ms-2">
-                                            <span class="badge bg-secondary"><?= $cart_item['qty']; ?>x</span>
+                                        <div class="ms-2">
+                                            <form method="POST" action="index.php" class="d-flex align-items-center gap-1 m-0">
+                                                <input type="hidden" name="action" value="update">
+                                                <input type="hidden" name="product_id" value="<?= $id; ?>">
+                                                <input type="number" name="qty" value="<?= (int)$cart_item['qty']; ?>" min="1" max="<?= (int)$cart_item['stock']; ?>" class="form-control form-control-sm text-center px-1" style="width: 55px; height: 30px;">
+                                                <button type="submit" class="btn btn-sm btn-outline-primary py-0 px-2" style="height: 30px;" title="Update Jumlah">
+                                                    <i class="bi bi-arrow-repeat"></i>
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
