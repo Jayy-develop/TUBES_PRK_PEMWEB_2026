@@ -6,6 +6,11 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+if ($_SESSION['role'] !== 'admin') {
+    header("Location: dashboard.php");
+    exit;
+}
+
 require_once __DIR__ . '/config/database.php';
 
 $query = "SELECT id, name, username, email, role, is_active, created_at
@@ -27,6 +32,7 @@ if (!$result) {
     <title>Daftar Pengguna | FEBMart</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
     <style>
@@ -94,7 +100,6 @@ if (!$result) {
         .content-description {
             color: #888;
             font-size: 13px;
-            margin-bottom: 25px;
         }
 
         .total-user {
@@ -140,19 +145,37 @@ if (!$result) {
             font-weight: 600;
         }
 
-        .btn-back {
+        .btn-save {
             background: #ffad42;
             color: #29245c;
             border: none;
             border-radius: 7px;
+            padding: 10px 15px;
+            font-size: 13px;
+            font-weight: bold;
+            transition: 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-save:hover {
+            background: #f49a25;
+            color: #29245c;
+        }
+
+        .btn-back {
+            background: #f5f4fb;
+            color: #5142a5;
+            border: 1px solid #ddd;
+            border-radius: 7px;
             padding: 11px 18px;
             font-size: 14px;
             font-weight: bold;
+            text-decoration: none;
             transition: 0.2s;
         }
 
         .btn-back:hover {
-            background: #f49a25;
+            background: #e9e6f7;
             color: #29245c;
         }
 
@@ -185,13 +208,16 @@ if (!$result) {
 
 <div class="main-container">
 
+    <!-- Header -->
     <div class="header-section">
 
         <div class="brand">
             <i class="bi bi-cart3"></i>FEBMart
         </div>
 
-        <h2><i class="bi bi-people-fill me-2"></i>Daftar Pengguna</h2>
+        <h2>
+            <i class="bi bi-people-fill me-2"></i>Daftar Pengguna
+        </h2>
 
         <p>
             Kelola dan pantau seluruh pengguna yang terdaftar
@@ -200,25 +226,45 @@ if (!$result) {
 
     </div>
 
+    <!-- Konten utama -->
     <div class="content-section">
 
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
 
             <div>
                 <h4>Data Pengguna</h4>
+
                 <p class="content-description mb-0">
                     Informasi akun pengguna FEBMart.
                 </p>
             </div>
 
-            <div class="total-user">
-                <i class="bi bi-person-check me-1"></i>
-                Total: <?= $result->num_rows; ?> Pengguna
+            <div class="d-flex align-items-center flex-wrap gap-2">
+
+                <div class="total-user">
+                    <i class="bi bi-person-check me-1"></i>
+                    Total: <?= $result->num_rows; ?> Pengguna
+                </div>
+
+                <a href="tambah_user.php" class="btn-save">
+                    <i class="bi bi-person-plus me-1"></i>
+                    Tambah Pengguna
+                </a>
+
             </div>
 
         </div>
 
-        <div class="table-responsive">
+        <?php if (isset($_GET['status']) && $_GET['status'] === 'berhasil'): ?>
+
+            <div class="alert alert-success" role="alert">
+                <i class="bi bi-check-circle me-1"></i>
+                Pengguna baru berhasil ditambahkan!
+            </div>
+
+        <?php endif; ?>
+
+\        <div class="table-responsive">
 
             <table class="table table-bordered table-hover align-middle">
 
@@ -265,9 +311,17 @@ if (!$result) {
 
                                 <td>
                                     <?php if ($user['is_active']): ?>
-                                        <span class="badge bg-success">Aktif</span>
+
+                                        <span class="badge bg-success">
+                                            Aktif
+                                        </span>
+
                                     <?php else: ?>
-                                        <span class="badge bg-danger">Nonaktif</span>
+
+                                        <span class="badge bg-danger">
+                                            Nonaktif
+                                        </span>
+
                                     <?php endif; ?>
                                 </td>
 
@@ -295,7 +349,7 @@ if (!$result) {
 
         </div>
 
-        <a href="dashboard.php" class="btn btn-back mt-4">
+        <a href="dashboard.php" class="btn-back d-inline-block mt-4">
             <i class="bi bi-arrow-left me-1"></i>
             Kembali ke Dashboard
         </a>
@@ -315,4 +369,3 @@ if (!$result) {
 $result->free();
 $conn->close();
 ?>
-```
