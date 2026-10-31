@@ -8,6 +8,10 @@ if (!isset($_SESSION['user_id'])) {
 
 require_once __DIR__ . '/../config/database.php';
 
+if (!isset($_SESSION['cart']) || !is_array($_SESSION['cart'])) {
+    $_SESSION['cart'] = [];
+}
+
 $search = isset($_GET['cari']) ? trim($_GET['cari']) : '';
 if ($search !== '') {
     $stmt = $conn->prepare("
@@ -318,13 +322,18 @@ if ($search !== '') {
 
                 <div class="col-lg-5">
                     <div class="section-card">
-                        <h3 class="section-title">Keranjang Belanja</h3>
-                        <p class="section-description">Daftar barang yang dipilih untuk transaksi.</p>
-                        <div class="empty-state mb-4">
-                            <i class="bi bi-cart"></i>
-                            <div>Keranjang masih kosong.</div>
-                            <small>Tambahkan produk dari katalog.</small>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <h3 class="section-title mb-0">Keranjang Belanja</h3>
+                            <span class="badge bg-secondary"><?= count($_SESSION['cart']); ?> Item</span>
                         </div>
+                        <p class="section-description">Daftar barang yang dipilih untuk transaksi.</p>
+                        <?php if (empty($_SESSION['cart'])): ?>
+                            <div class="empty-state mb-4">
+                                <i class="bi bi-cart"></i>
+                                <div>Keranjang masih kosong.</div>
+                                <small>Tambahkan produk dari katalog.</small>
+                            </div>
+                        <?php endif; ?>
                         <div class="summary-box">
                             <div class="summary-label">Total Pembayaran</div>
                             <div class="summary-value">Rp 0</div>
