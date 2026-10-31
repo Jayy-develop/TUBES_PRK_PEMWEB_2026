@@ -74,6 +74,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'hapus') {
+    $product_id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+    if ($product_id > 0 && isset($_SESSION['cart'][$product_id])) {
+        $nama_item = $_SESSION['cart'][$product_id]['name'];
+        unset($_SESSION['cart'][$product_id]);
+        $_SESSION['flash_success'] = "Produk '$nama_item' berhasil dihapus dari keranjang.";
+    }
+    header("Location: index.php");
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'kosongkan') {
+    $_SESSION['cart'] = [];
+    $_SESSION['flash_success'] = "Keranjang belanja berhasil dikosongkan.";
+    header("Location: index.php");
+    exit;
+}
+
 $search = isset($_GET['cari']) ? trim($_GET['cari']) : '';
 if ($search !== '') {
     $stmt = $conn->prepare("
@@ -403,7 +421,17 @@ if ($search !== '') {
                     <div class="section-card">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <h3 class="section-title mb-0">Keranjang Belanja</h3>
-                            <span class="badge bg-secondary"><?= count($_SESSION['cart']); ?> Item</span>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-secondary"><?= count($_SESSION['cart']); ?> Item</span>
+                                <?php if (!empty($_SESSION['cart'])): ?>
+                                    <form method="POST" action="index.php" class="m-0" onsubmit="return confirm('Kosongkan semua item di keranjang?');">
+                                        <input type="hidden" name="action" value="kosongkan">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" style="font-size: 11px;">
+                                            <i class="bi bi-trash me-1"></i>Kosongkan
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                            </div>
                         </div>
                         <p class="section-description">Daftar barang yang dipilih untuk transaksi.</p>
                         <?php if (empty($_SESSION['cart'])): ?>
@@ -424,13 +452,20 @@ if ($search !== '') {
                                                 <?= htmlspecialchars($cart_item['sku']); ?> | Rp <?= number_format($cart_item['price'], 0, ',', '.'); ?>
                                             </div>
                                         </div>
-                                        <div class="ms-2">
+                                        <div class="ms-2 d-flex align-items-center gap-1">
                                             <form method="POST" action="index.php" class="d-flex align-items-center gap-1 m-0">
                                                 <input type="hidden" name="action" value="update">
                                                 <input type="hidden" name="product_id" value="<?= $id; ?>">
                                                 <input type="number" name="qty" value="<?= (int)$cart_item['qty']; ?>" min="1" max="<?= (int)$cart_item['stock']; ?>" class="form-control form-control-sm text-center px-1" style="width: 55px; height: 30px;">
                                                 <button type="submit" class="btn btn-sm btn-outline-primary py-0 px-2" style="height: 30px;" title="Update Jumlah">
                                                     <i class="bi bi-arrow-repeat"></i>
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="index.php" class="m-0">
+                                                <input type="hidden" name="action" value="hapus">
+                                                <input type="hidden" name="product_id" value="<?= $id; ?>">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" style="height: 30px;" title="Hapus item">
+                                                    <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
                                         </div>
