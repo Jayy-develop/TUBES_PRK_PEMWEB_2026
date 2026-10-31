@@ -12,6 +12,44 @@ if (!isset($_SESSION['cart']) || !is_array($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
 
+$pesan_sukses = $_SESSION['flash_success'] ?? '';
+$pesan_error = $_SESSION['flash_error'] ?? '';
+unset($_SESSION['flash_success'], $_SESSION['flash_error']);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'tambah') {
+    $product_id = isset($_POST['product_id']) ? (int)$_POST['product_id'] : 0;
+    if ($product_id > 0) {
+        $stmt = $conn->prepare("SELECT id, sku, name, price, stock FROM products WHERE id = ?");
+        $stmt->bind_param("i", $product_id);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        $item = $res->fetch_assoc();
+
+        if ($item) {
+            $current_qty = isset($_SESSION['cart'][$product_id]) ? $_SESSION['cart'][$product_id]['qty'] : 0;
+            if ($item['stock'] > $current_qty) {
+                if (isset($_SESSION['cart'][$product_id])) {
+                    $_SESSION['cart'][$product_id]['qty'] += 1;
+                } else {
+                    $_SESSION['cart'][$product_id] = [
+                        'id' => $item['id'],
+                        'sku' => $item['sku'],
+                        'name' => $item['name'],
+                        'price' => (float)$item['price'],
+                        'stock' => (int)$item['stock'],
+                        'qty' => 1
+                    ];
+                }
+                $_SESSION['flash_success'] = "Produk berhasil ditambahkan ke keranjang.";
+            } else {
+                $_SESSION['flash_error'] = "Stok produk tidak mencukupi!";
+            }
+        }
+    }
+    header("Location: index.php");
+    exit;
+}
+
 $search = isset($_GET['cari']) ? trim($_GET['cari']) : '';
 if ($search !== '') {
     $stmt = $conn->prepare("
@@ -259,6 +297,19 @@ if ($search !== '') {
         </header>
 
         <section class="content-section">
+            <?php if ($pesan_sukses): ?>
+                <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+                    <i class="bi bi-check-circle me-1"></i><?= htmlspecialchars($pesan_sukses); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <?php endif; ?>
+            <?php if ($pesan_error): ?>
+                <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+                    <i class="bi bi-exclamation-triangle me-1"></i><?= htmlspecialchars($pesan_error); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <?php endif; ?>
+
             <div class="row g-4">
                 <div class="col-lg-7">
                     <div class="section-card">
@@ -303,9 +354,13 @@ if ($search !== '') {
                                             <div class="product-price mb-1">
                                                 Rp <?= number_format($item['price'], 0, ',', '.'); ?>
                                             </div>
-                                            <button type="button" class="btn-add-cart" disabled>
-                                                <i class="bi bi-cart-plus me-1"></i>Pilih
-                                            </button>
+                                            <form method="POST" action="index.php" class="m-0">
+                                                <input type="hidden" name="action" value="tambah">
+                                                <input type="hidden" name="product_id" value="<?= $item['id']; ?>">
+                                                <button type="submit" class="btn-add-cart" <?= $item['stock'] <= 0 ? 'disabled' : ''; ?>>
+                                                    <i class="bi bi-cart-plus me-1"></i><?= $item['stock'] <= 0 ? 'Habis' : 'Pilih'; ?>
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
                                 <?php endwhile; ?>
@@ -333,6 +388,24 @@ if ($search !== '') {
                                 <div>Keranjang masih kosong.</div>
                                 <small>Tambahkan produk dari katalog.</small>
                             </div>
+                        <?php else: ?>
+                            <div class="cart-items-container mb-3" style="max-height: 320px; overflow-y: auto;">
+                                <?php foreach ($_SESSION['cart'] as $id => $cart_item): ?>
+                                    <div class="d-flex justify-content-between align-items-center p-2 mb-2 border rounded bg-light">
+                                        <div style="min-width: 0; flex: 1;">
+                                            <div class="fw-bold text-truncate" style="font-size: 13px; color: #29245c;">
+                                                <?= htmlspecialchars($cart_item['name']); ?>
+                                            </div>
+                                            <div class="text-muted" style="font-size: 11px;">
+                                                <?= htmlspecialchars($cart_item['sku']); ?> | Rp <?= number_format($cart_item['price'], 0, ',', '.'); ?>
+                                            </div>
+                                        </div>
+                                        <div class="text-end ms-2">
+                                            <span class="badge bg-secondary"><?= $cart_item['qty']; ?>x</span>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
                         <?php endif; ?>
                         <div class="summary-box">
                             <div class="summary-label">Total Pembayaran</div>
@@ -349,5 +422,7 @@ if ($search !== '') {
 
         <footer class="copyright">© 2026 FEBMart. All Rights Reserved.</footer>
     </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
