@@ -118,6 +118,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'checkout') {
+    if (empty($_SESSION['cart'])) {
+        $_SESSION['flash_error'] = "Keranjang belanja masih kosong!";
+        header("Location: index.php");
+        exit;
+    }
+
+    $customer_name = !empty($_POST['customer_name']) ? trim($_POST['customer_name']) : 'Pelanggan Umum';
+    $paid_amount = isset($_POST['nominal_bayar']) ? (float)$_POST['nominal_bayar'] : 0.0;
+    $user_id = $_SESSION['user_id'] ?? null;
+
+    $total_amount = 0;
+    foreach ($_SESSION['cart'] as $item) {
+        $total_amount += $item['price'] * $item['qty'];
+    }
+    $change_amount = $paid_amount - $total_amount;
+
+    $invoice_number = 'INV-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -5));
+
+    $conn->begin_transaction();
+    try {
+        $stmt_trans = $conn->prepare("
+            INSERT INTO transactions (invoice_number, user_id, customer_name, total_amount, paid_amount, change_amount)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ");
+        $stmt_trans->bind_param("sisddd", $invoice_number, $user_id, $customer_name, $total_amount, $paid_amount, $change_amount);
+        $stmt_trans->execute();
+        $transaction_id = $conn->insert_id;
+
+        $stmt_detail = $conn->prepare("
+            INSERT INTO transaction_details (transaction_id, product_id, product_name, price, qty, subtotal)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ");
+
+        foreach ($_SESSION['cart'] as $item) {
+            $subtotal = $item['price'] * $item['qty'];
+            $stmt_detail->bind_param("iisdid", $transaction_id, $item['id'], $item['name'], $item['price'], $item['qty'], $subtotal);
+            $stmt_detail->execute();
+        }
+
+        $conn->commit();
+
+        $_SESSION['cart'] = [];
+        $_SESSION['flash_success'] = "Transaksi $invoice_number berhasil disimpan! Kembalian: Rp " . number_format($change_amount, 0, ',', '.');
+    } catch (Exception $e) {
+        $conn->rollback();
+        $_SESSION['flash_error'] = "Gagal memproses transaksi: " . $e->getMessage();
+    }
+
+    header("Location: index.php");
+    exit;
+}
+
 $search = isset($_GET['cari']) ? trim($_GET['cari']) : '';
 if ($search !== '') {
     $stmt = $conn->prepare("
