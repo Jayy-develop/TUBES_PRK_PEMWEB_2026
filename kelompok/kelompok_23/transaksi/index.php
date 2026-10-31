@@ -494,6 +494,28 @@ $total_bayar = $total_subtotal;
                                 <div class="summary-value" id="display-total">Rp <?= number_format($total_bayar, 0, ',', '.'); ?></div>
                             </div>
                         </div>
+
+                        <form method="POST" action="index.php" id="form-transaksi">
+                            <input type="hidden" name="action" value="checkout">
+                            <input type="hidden" name="total_bayar" id="input-total-bayar" value="<?= (int)$total_bayar; ?>">
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="font-size: 13px; color: #29245c;">Nama Pelanggan</label>
+                                <input type="text" name="customer_name" class="form-control form-control-sm" placeholder="Nama Pelanggan (opsional)" value="Pelanggan Umum" <?= empty($_SESSION['cart']) ? 'disabled' : ''; ?>>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="font-size: 13px; color: #29245c;">Nominal Pembayaran (Cash) <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light fw-bold" style="font-size: 13px;">Rp</span>
+                                    <input type="number" name="nominal_bayar" id="nominal-bayar" class="form-control" placeholder="0" min="0" step="1" required <?= empty($_SESSION['cart']) ? 'disabled' : ''; ?>>
+                                </div>
+                            </div>
+
+                            <button type="submit" id="btn-submit-transaksi" class="btn w-100 py-2 fw-bold" style="background: #29245c; color: white; border-radius: 8px;" <?= empty($_SESSION['cart']) ? 'disabled' : ''; ?>>
+                                <i class="bi bi-check-circle me-1"></i>Selesaikan Transaksi
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
