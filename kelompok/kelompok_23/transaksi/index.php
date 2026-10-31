@@ -8,6 +8,32 @@ if (!isset($_SESSION['user_id'])) {
 
 require_once __DIR__ . '/../config/database.php';
 
+// Inisialisasi tabel transaksi jika belum ada
+$conn->query("
+    CREATE TABLE IF NOT EXISTS `transactions` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `invoice_number` VARCHAR(50) NOT NULL UNIQUE,
+        `user_id` INT NULL,
+        `customer_name` VARCHAR(100) NOT NULL DEFAULT 'Pelanggan Umum',
+        `total_amount` DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+        `paid_amount` DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+        `change_amount` DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+        `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+");
+
+$conn->query("
+    CREATE TABLE IF NOT EXISTS `transaction_details` (
+        `id` INT AUTO_INCREMENT PRIMARY KEY,
+        `transaction_id` INT NOT NULL,
+        `product_id` INT NOT NULL,
+        `product_name` VARCHAR(255) NOT NULL,
+        `price` DECIMAL(12, 2) NOT NULL DEFAULT 0.00,
+        `qty` INT NOT NULL DEFAULT 1,
+        `subtotal` DECIMAL(12, 2) NOT NULL DEFAULT 0.00
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+");
+
 if (!isset($_SESSION['cart']) || !is_array($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
