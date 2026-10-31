@@ -512,6 +512,14 @@ $total_bayar = $total_subtotal;
                                 </div>
                             </div>
 
+                            <div class="mb-3">
+                                <label class="form-label fw-bold" style="font-size: 13px; color: #29245c;">Kembalian</label>
+                                <div class="p-2 border rounded bg-light d-flex justify-content-between align-items-center">
+                                    <span class="text-muted" style="font-size: 13px;">Uang Kembali:</span>
+                                    <span class="fw-bold text-success" id="display-kembalian" style="font-size: 16px;">Rp 0</span>
+                                </div>
+                            </div>
+
                             <button type="submit" id="btn-submit-transaksi" class="btn w-100 py-2 fw-bold" style="background: #29245c; color: white; border-radius: 8px;" <?= empty($_SESSION['cart']) ? 'disabled' : ''; ?>>
                                 <i class="bi bi-check-circle me-1"></i>Selesaikan Transaksi
                             </button>
@@ -529,5 +537,38 @@ $total_bayar = $total_subtotal;
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const inputBayar = document.getElementById('nominal-bayar');
+        const displayKembalian = document.getElementById('display-kembalian');
+        const totalBayar = <?= (int)$total_bayar; ?>;
+        const btnSubmit = document.getElementById('btn-submit-transaksi');
+
+        function hitungKembalian() {
+            if (!inputBayar || !displayKembalian) return;
+            const bayar = parseFloat(inputBayar.value) || 0;
+            const kembalian = bayar - totalBayar;
+
+            if (totalBayar === 0) {
+                displayKembalian.textContent = 'Rp 0';
+                displayKembalian.className = 'fw-bold text-muted';
+                return;
+            }
+
+            if (kembalian >= 0) {
+                displayKembalian.textContent = 'Rp ' + Math.floor(kembalian).toLocaleString('id-ID');
+                displayKembalian.className = 'fw-bold text-success';
+                if (btnSubmit) btnSubmit.disabled = false;
+            } else {
+                displayKembalian.textContent = 'Kurang Rp ' + Math.floor(Math.abs(kembalian)).toLocaleString('id-ID');
+                displayKembalian.className = 'fw-bold text-danger';
+                if (btnSubmit) btnSubmit.disabled = true;
+            }
+        }
+
+        if (inputBayar) {
+            inputBayar.addEventListener('input', hitungKembalian);
+            hitungKembalian();
+        }
+    </script>
 </body>
 </html>
