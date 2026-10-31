@@ -29,6 +29,15 @@ $query = $conn->query("SELECT * FROM categories ORDER BY id DESC");
         .content-section { padding: 35px; }
         .content-section h4 { color: #29245c; font-size: 20px; font-weight: bold; }
         .content-description { color: #888; font-size: 13px; }
+
+        .total-data { 
+            background: #f5f4fb; 
+            color: #5142a5; 
+            padding: 10px 15px; 
+            border-radius: 7px; 
+            font-size: 13px; 
+            font-weight: bold; 
+        }
         
         .table { font-size: 13px; margin-bottom: 0; }
         .table thead th { background: #29245c; color: white; padding: 14px 12px; font-weight: 600; white-space: nowrap; }
@@ -57,7 +66,13 @@ $query = $conn->query("SELECT * FROM categories ORDER BY id DESC");
                 <h4>Data Kategori</h4>
                 <p class="content-description mb-0">Informasi kategori produk FEBMart.</p>
             </div>
-            <a href="tambah.php" class="btn-save"><i class="bi bi-plus-lg me-1"></i> Tambah Kategori</a>
+            
+            <div class="d-flex align-items-center flex-wrap gap-2">
+                <div class="total-data">
+                    <i class="bi bi-tags me-1"></i> Total: <?= $query->num_rows; ?> Kategori
+                </div>
+                <a href="tambah.php" class="btn-save"><i class="bi bi-plus-lg me-1"></i> Tambah Kategori</a>
+            </div>
         </div>
 
         <?php if (isset($_GET['status']) && $_GET['status'] === 'berhasil'): ?>
