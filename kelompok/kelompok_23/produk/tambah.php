@@ -13,12 +13,19 @@ if (isset($_POST['simpan'])) {
     $price       = $_POST['price'];
     $stock       = $_POST['stock'];
     $min_stock   = $_POST['min_stock'];
+    
+    $image = $_FILES['image']['name'];
+    $tmp   = $_FILES['image']['tmp_name'];
+    
+    if ($image != "") {
+        move_uploaded_file($tmp, "../assets/img/" . $image);
+    }
 
     if (empty($category_id) || empty($sku) || empty($name) || empty($price)) {
         $error = "Semua kolom bertanda (*) wajib diisi!";
     } else {
-        $stmt = $conn->prepare("INSERT INTO products (category_id, sku, name, price, stock, min_stock) VALUES (?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("issdii", $category_id, $sku, $name, $price, $stock, $min_stock);
+        $stmt = $conn->prepare("INSERT INTO products (category_id, sku, name, price, stock, min_stock, image) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("issdiis", $category_id, $sku, $name, $price, $stock, $min_stock, $image);
         
         if ($stmt->execute()) {
             header("Location: index.php?status=berhasil");
@@ -71,7 +78,7 @@ if (isset($_POST['simpan'])) {
             </div>
         <?php endif; ?>
 
-        <form method="POST">
+        <form method="POST" enctype="multipart/form-data">
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label fw-bold">Kategori <span class="text-danger">*</span></label>
@@ -82,7 +89,6 @@ if (isset($_POST['simpan'])) {
                         <?php endwhile; ?>
                     </select>
                 </div>
-                
                 <div class="col-md-6 mb-3">
                     <label class="form-label fw-bold">SKU <span class="text-danger">*</span></label>
                     <input type="text" name="sku" class="form-control" placeholder="Contoh: PRD-001" required>
@@ -107,6 +113,12 @@ if (isset($_POST['simpan'])) {
                     <label class="form-label fw-bold">Minimal Stok</label>
                     <input type="number" name="min_stock" class="form-control" value="5" required>
                 </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold">Gambar Produk</label>
+                <input type="file" name="image" class="form-control" accept="image/*">
+                <small class="text-muted">Biarkan kosong jika tidak ingin mengunggah gambar.</small>
             </div>
 
             <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
