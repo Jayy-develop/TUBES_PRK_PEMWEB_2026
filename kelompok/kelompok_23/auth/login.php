@@ -233,7 +233,21 @@
             Silakan masuk menggunakan akun admin Anda.
         </p>
 
-        <form action="" method="POST">
+        <?php if (isset($_GET['error'])): ?>
+    <div class="alert alert-danger" role="alert">
+        <?php
+        if ($_GET['error'] === 'gagal') {
+            echo "Username atau password salah!";
+        } elseif ($_GET['error'] === 'nonaktif') {
+            echo "Akun Anda sedang dinonaktifkan!";
+        } elseif ($_GET['error'] === 'kosong') {
+            echo "Username dan password wajib diisi!";
+        }
+        ?>
+    </div>
+<?php endif; ?>
+
+        <form action="proses_login.php" method="POST">
 
             <div class="mb-3">
                 <label for="username" class="form-label">Username</label>

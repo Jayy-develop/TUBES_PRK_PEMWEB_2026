@@ -1,21 +1,17 @@
-
 <?php
 
 require_once __DIR__ . '/../config/database.php';
 
-// Pastikan koneksi tersedia
 if (!isset($conn) || !($conn instanceof mysqli)) {
     die("Koneksi database tidak tersedia!");
 }
 
-// Data akun admin
 $name = "Admin FEBMart";
 $username = "adminfebmart";
 $email = "admin@febmart.com";
 $password = password_hash("adminfebmart", PASSWORD_DEFAULT);
 $role = "admin";
 
-// Periksa username
 $check = $conn->prepare("SELECT id FROM users WHERE username = ?");
 
 if (!$check) {
