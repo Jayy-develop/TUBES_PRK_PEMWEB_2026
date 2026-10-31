@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -39,7 +38,7 @@
 
         .welcome-section {
             width: 45%;
-            background: #29245c;
+            background: linear-gradient(145deg, #29245c, #5142a5);
             color: white;
             padding: 35px;
             display: flex;
@@ -110,7 +109,7 @@
         }
 
         .form-section h2 {
-            color: #263653;
+            color: #29245c;
             font-size: 27px;
             font-weight: bold;
             margin-bottom: 10px;
@@ -128,24 +127,36 @@
             color: #333;
         }
 
-        .form-control {
+        .input-group-text {
+            background: #f5f4fb;
+            border: 1px solid #ddd;
+            color: #5142a5;
+            padding: 12px 14px;
+        }
+
+        .input-group .form-control {
             padding: 12px;
             border: 1px solid #ddd;
-            border-radius: 7px;
+            border-left: none;
             font-size: 14px;
         }
 
-        .form-control:focus {
-            border-color: #263653;
-            box-shadow: 0 0 0 2px rgba(38, 54, 83, 0.1);
+        .input-group .form-control:focus {
+            border-color: #5142a5;
+            box-shadow: none;
         }
 
+        .input-group:focus-within .input-group-text {
+            border-color: #5142a5;
+        }
+
+        /* Tombol login */
         .btn-login {
             width: 100%;
             padding: 12px;
             margin-top: 12px;
             background: #ffad42;
-            color: #263653;
+            color: #29245c;
             border: none;
             border-radius: 7px;
             font-weight: bold;
@@ -154,7 +165,7 @@
 
         .btn-login:hover {
             background: #f49a25;
-            color: #263653;
+            color: #29245c;
         }
 
         .copyright {
@@ -164,6 +175,7 @@
             margin-top: 30px;
         }
 
+        /* Tampilan mobile */
         @media (max-width: 768px) {
             .login-container {
                 max-width: 430px;
@@ -225,26 +237,42 @@
 
             <div class="mb-3">
                 <label for="username" class="form-label">Username</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="username"
-                    class="form-control"
-                    placeholder="Masukkan username"
-                    required
-                >
+
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-person"></i>
+                    </span>
+
+                    <input
+                        type="text"
+                        id="username"
+                        name="username"
+                        class="form-control"
+                        placeholder="Masukkan username"
+                        autocomplete="username"
+                        required
+                    >
+                </div>
             </div>
 
             <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="password"
-                    class="form-control"
-                    placeholder="Masukkan password"
-                    required
-                >
+
+                <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="bi bi-lock"></i>
+                    </span>
+
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        class="form-control"
+                        placeholder="Masukkan password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
             </div>
 
             <button type="submit" name="login" class="btn btn-login">
