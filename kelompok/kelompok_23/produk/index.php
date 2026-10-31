@@ -81,6 +81,28 @@ $query = $conn->query("
             </div>
         </div>
 
+                <!-- Notifikasi Alert -->
+        <?php if (isset($_GET['status']) && $_GET['status'] === 'berhasil'): ?>
+            <div class="alert alert-success d-flex align-items-center" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <div>Produk baru berhasil ditambahkan!</div>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['status']) && $_GET['status'] === 'edit_berhasil'): ?>
+            <div class="alert alert-success d-flex align-items-center" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <div>Produk berhasil diperbarui!</div>
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['status']) && $_GET['status'] === 'hapus_berhasil'): ?>
+            <div class="alert alert-success d-flex align-items-center" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <div>Produk berhasil dihapus!</div>
+            </div>
+        <?php endif; ?>
+
         <div class="table-responsive">
             <table class="table table-bordered table-hover align-middle">
                 <thead>
