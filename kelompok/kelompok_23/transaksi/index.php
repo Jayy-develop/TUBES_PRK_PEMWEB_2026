@@ -113,6 +113,13 @@ if ($search !== '') {
         ORDER BY products.name ASC
     ");
 }
+$total_subtotal = 0;
+$total_qty = 0;
+foreach ($_SESSION['cart'] as $cart_item) {
+    $total_subtotal += $cart_item['price'] * $cart_item['qty'];
+    $total_qty += $cart_item['qty'];
+}
+$total_bayar = $total_subtotal;
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -449,7 +456,7 @@ if ($search !== '') {
                                                 <?= htmlspecialchars($cart_item['name']); ?>
                                             </div>
                                             <div class="text-muted" style="font-size: 11px;">
-                                                <?= htmlspecialchars($cart_item['sku']); ?> | Rp <?= number_format($cart_item['price'], 0, ',', '.'); ?>
+                                                <?= htmlspecialchars($cart_item['sku']); ?> | Rp <?= number_format($cart_item['price'], 0, ',', '.'); ?> × <?= $cart_item['qty']; ?> = <strong class="text-dark">Rp <?= number_format($cart_item['price'] * $cart_item['qty'], 0, ',', '.'); ?></strong>
                                             </div>
                                         </div>
                                         <div class="ms-2 d-flex align-items-center gap-1">
@@ -474,8 +481,18 @@ if ($search !== '') {
                             </div>
                         <?php endif; ?>
                         <div class="summary-box">
-                            <div class="summary-label">Total Pembayaran</div>
-                            <div class="summary-value">Rp 0</div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="summary-label">Total Item / Kuantitas</span>
+                                <strong style="font-size: 13px; color: #29245c;"><?= count($_SESSION['cart']); ?> jenis (<?= $total_qty; ?> pcs)</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                                <span class="summary-label">Subtotal</span>
+                                <strong style="font-size: 14px; color: #29245c;">Rp <?= number_format($total_subtotal, 0, ',', '.'); ?></strong>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="summary-label fw-bold" style="color: #29245c;">Total Bayar</div>
+                                <div class="summary-value" id="display-total">Rp <?= number_format($total_bayar, 0, ',', '.'); ?></div>
+                            </div>
                         </div>
                     </div>
                 </div>
