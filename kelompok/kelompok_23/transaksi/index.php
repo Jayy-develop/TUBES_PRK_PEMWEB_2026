@@ -5,6 +5,30 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: ../auth/login.php");
     exit;
 }
+
+require_once __DIR__ . '/../config/database.php';
+
+$search = isset($_GET['cari']) ? trim($_GET['cari']) : '';
+if ($search !== '') {
+    $stmt = $conn->prepare("
+        SELECT products.*, categories.name AS nama_kategori 
+        FROM products 
+        LEFT JOIN categories ON products.category_id = categories.id 
+        WHERE products.name LIKE ? OR products.sku LIKE ?
+        ORDER BY products.name ASC
+    ");
+    $param = "%$search%";
+    $stmt->bind_param("ss", $param, $param);
+    $stmt->execute();
+    $produk = $stmt->get_result();
+} else {
+    $produk = $conn->query("
+        SELECT products.*, categories.name AS nama_kategori 
+        FROM products 
+        LEFT JOIN categories ON products.category_id = categories.id 
+        ORDER BY products.name ASC
+    ");
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -140,6 +164,79 @@ if (!isset($_SESSION['user_id'])) {
             background: #e9e6f7;
         }
 
+        .catalog-container {
+            max-height: 520px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        .product-card {
+            border: 1px solid #e8e7f0;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+            background: #fff;
+            transition: all 0.2s;
+        }
+
+        .product-card:hover {
+            border-color: #5142a5;
+            background: #fbfbfe;
+        }
+
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+            background: #f0f0f4;
+        }
+
+        .product-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .product-name {
+            font-weight: bold;
+            font-size: 14px;
+            color: #29245c;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .product-meta {
+            font-size: 12px;
+            color: #777;
+        }
+
+        .product-price {
+            font-weight: bold;
+            font-size: 14px;
+            color: #5142a5;
+        }
+
+        .btn-add-cart {
+            background: #29245c;
+            color: #fff;
+            border: none;
+            padding: 7px 14px;
+            font-size: 12px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .btn-add-cart:hover:not(:disabled) {
+            background: #ffad42;
+            color: #29245c;
+        }
+
         .copyright {
             padding: 20px;
             border-top: 1px solid #eee;
@@ -161,12 +258,60 @@ if (!isset($_SESSION['user_id'])) {
             <div class="row g-4">
                 <div class="col-lg-7">
                     <div class="section-card">
-                        <h3 class="section-title">Katalog Produk</h3>
-                        <p class="section-description">Pilih produk yang ingin ditambahkan ke transaksi.</p>
-                        <div class="empty-state">
-                            <i class="bi bi-box-seam"></i>
-                            <div>Belum ada produk yang ditampilkan.</div>
-                            <small>Katalog produk akan tersedia pada tahap berikutnya.</small>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h3 class="section-title">Katalog Produk</h3>
+                                <p class="section-description mb-0">Pilih produk yang ingin ditambahkan ke transaksi.</p>
+                            </div>
+                        </div>
+
+                        <form method="GET" class="mb-3">
+                            <div class="input-group">
+                                <input type="text" name="cari" class="form-control" placeholder="Cari nama produk atau SKU..." value="<?= htmlspecialchars($search); ?>">
+                                <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
+                                <?php if ($search !== ''): ?>
+                                    <a href="index.php" class="btn btn-outline-danger"><i class="bi bi-x-lg"></i></a>
+                                <?php endif; ?>
+                            </div>
+                        </form>
+
+                        <div class="catalog-container">
+                            <?php if ($produk && $produk->num_rows > 0): ?>
+                                <?php while ($item = $produk->fetch_assoc()): ?>
+                                    <div class="product-card">
+                                        <?php if (!empty($item['image']) && file_exists(__DIR__ . '/../assets/img/' . $item['image'])): ?>
+                                            <img src="../assets/img/<?= htmlspecialchars($item['image']); ?>" class="product-img" alt="<?= htmlspecialchars($item['name']); ?>">
+                                        <?php else: ?>
+                                            <div class="product-img d-flex align-items-center justify-content-center text-muted">
+                                                <i class="bi bi-image"></i>
+                                            </div>
+                                        <?php endif; ?>
+                                        <div class="product-info">
+                                            <div class="product-name" title="<?= htmlspecialchars($item['name']); ?>">
+                                                <?= htmlspecialchars($item['name']); ?>
+                                            </div>
+                                            <div class="product-meta">
+                                                <span class="badge bg-light text-dark border"><?= htmlspecialchars($item['sku']); ?></span>
+                                                <span class="ms-1">Stok: <strong><?= (int)$item['stock']; ?></strong></span>
+                                            </div>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="product-price mb-1">
+                                                Rp <?= number_format($item['price'], 0, ',', '.'); ?>
+                                            </div>
+                                            <button type="button" class="btn-add-cart" disabled>
+                                                <i class="bi bi-cart-plus me-1"></i>Pilih
+                                            </button>
+                                        </div>
+                                    </div>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <div class="empty-state">
+                                    <i class="bi bi-box-seam"></i>
+                                    <div>Produk tidak ditemukan.</div>
+                                    <small class="text-muted">Tidak ada produk yang sesuai dengan kriteria pencarian.</small>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
