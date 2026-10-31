@@ -36,6 +36,11 @@ if (!isset($_SESSION['user_id'])) {
                 <p>
                     Role: <?= htmlspecialchars($_SESSION['role']); ?>
                 </p>
+
+                 <a href="auth/logout.php" class="btn btn-danger mt-3">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+                
             </div>
         </div>
     </div>
