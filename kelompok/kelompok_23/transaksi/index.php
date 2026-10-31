@@ -133,20 +133,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     foreach ($_SESSION['cart'] as $item) {
         $total_amount += $item['price'] * $item['qty'];
     }
-    $change_amount = $paid_amount - $total_amount;
 
+    // Validasi nominal pembayaran tidak boleh kurang dari total belanja
+    if ($paid_amount < $total_amount) {
+        $kurang = $total_amount - $paid_amount;
+        $_SESSION['flash_error'] = "Nominal pembayaran kurang Rp " . number_format($kurang, 0, ',', '.') . "!";
+        header("Location: index.php");
+        exit;
+    }
+
+    $change_amount = $paid_amount - $total_amount;
     $invoice_number = 'INV-' . date('Ymd') . '-' . strtoupper(substr(uniqid(), -5));
 
     $conn->begin_transaction();
     try {
+        // Validasi ketersediaan stok terbaru dari database untuk setiap produk
+        $stmt_check_stock = $conn->prepare("SELECT id, name, stock FROM products WHERE id = ? FOR UPDATE");
+        $stmt_potong_stok = $conn->prepare("UPDATE products SET stock = stock - ? WHERE id = ?");
+
+        foreach ($_SESSION['cart'] as $item) {
+            $stmt_check_stock->bind_param("i", $item['id']);
+            $stmt_check_stock->execute();
+            $db_product = $stmt_check_stock->get_result()->fetch_assoc();
+
+            if (!$db_product) {
+                throw new Exception("Produk '{$item['name']}' tidak ditemukan dalam database.");
+            }
+
+            if ($db_product['stock'] < $item['qty']) {
+                throw new Exception("Stok untuk '{$db_product['name']}' tidak mencukupi! Sisa stok: {$db_product['stock']}, diminta: {$item['qty']}.");
+            }
+
+            // Pemotongan stok otomatis
+            $stmt_potong_stok->bind_param("ii", $item['qty'], $item['id']);
+            if (!$stmt_potong_stok->execute()) {
+                throw new Exception("Gagal memotong stok untuk produk '{$db_product['name']}': " . $conn->error);
+            }
+        }
+
+        // Simpan data transaksi utama
         $stmt_trans = $conn->prepare("
             INSERT INTO transactions (invoice_number, user_id, customer_name, total_amount, paid_amount, change_amount)
             VALUES (?, ?, ?, ?, ?, ?)
         ");
         $stmt_trans->bind_param("sisddd", $invoice_number, $user_id, $customer_name, $total_amount, $paid_amount, $change_amount);
-        $stmt_trans->execute();
+        if (!$stmt_trans->execute()) {
+            throw new Exception("Gagal menyimpan data transaksi: " . $conn->error);
+        }
         $transaction_id = $conn->insert_id;
 
+        // Simpan detail item transaksi
         $stmt_detail = $conn->prepare("
             INSERT INTO transaction_details (transaction_id, product_id, product_name, price, qty, subtotal)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -155,16 +191,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         foreach ($_SESSION['cart'] as $item) {
             $subtotal = $item['price'] * $item['qty'];
             $stmt_detail->bind_param("iisdid", $transaction_id, $item['id'], $item['name'], $item['price'], $item['qty'], $subtotal);
-            $stmt_detail->execute();
+            if (!$stmt_detail->execute()) {
+                throw new Exception("Gagal menyimpan detail transaksi: " . $conn->error);
+            }
         }
 
         $conn->commit();
 
         $_SESSION['cart'] = [];
-        $_SESSION['flash_success'] = "Transaksi $invoice_number berhasil disimpan! Kembalian: Rp " . number_format($change_amount, 0, ',', '.');
+        $_SESSION['flash_success'] = "Transaksi $invoice_number berhasil diproses! Stok berhasil dipotong. Kembalian: Rp " . number_format($change_amount, 0, ',', '.');
     } catch (Exception $e) {
         $conn->rollback();
-        $_SESSION['flash_error'] = "Gagal memproses transaksi: " . $e->getMessage();
+        $_SESSION['flash_error'] = "Transaksi dibatalkan: " . $e->getMessage();
     }
 
     header("Location: index.php");
