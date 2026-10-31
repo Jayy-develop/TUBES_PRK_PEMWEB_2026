@@ -2,6 +2,32 @@
 session_start();
 if (!isset($_SESSION['user_id'])) { header("Location: ../auth/login.php"); exit; }
 require_once __DIR__ . '/../config/database.php';
+
+$kategori = $conn->query("SELECT * FROM categories ORDER BY name ASC");
+$error = '';
+
+if (isset($_POST['simpan'])) {
+    $category_id = $_POST['category_id'];
+    $sku         = trim($_POST['sku']);
+    $name        = trim($_POST['name']);
+    $price       = $_POST['price'];
+    $stock       = $_POST['stock'];
+    $min_stock   = $_POST['min_stock'];
+
+    if (empty($category_id) || empty($sku) || empty($name) || empty($price)) {
+        $error = "Semua kolom bertanda (*) wajib diisi!";
+    } else {
+        $stmt = $conn->prepare("INSERT INTO products (category_id, sku, name, price, stock, min_stock) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("issdii", $category_id, $sku, $name, $price, $stock, $min_stock);
+        
+        if ($stmt->execute()) {
+            header("Location: index.php?status=berhasil");
+            exit;
+        } else {
+            $error = "Gagal menyimpan produk: " . $conn->error;
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -39,25 +65,47 @@ require_once __DIR__ . '/../config/database.php';
     </div>
 
     <div class="content-section">
-        <form method="POST">
-            <div class="mb-3">
-                <label class="form-label fw-bold">Nama Produk</label>
-                <input type="text" name="name" class="form-control" required>
+        <?php if ($error): ?>
+            <div class="alert alert-danger" role="alert">
+                <i class="bi bi-exclamation-circle me-1"></i> <?= $error; ?>
             </div>
-            
+        <?php endif; ?>
+
+        <form method="POST">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Kategori <span class="text-danger">*</span></label>
+                    <select name="category_id" class="form-select" required>
+                        <option value="">-- Pilih Kategori --</option>
+                        <?php while($kat = $kategori->fetch_assoc()): ?>
+                            <option value="<?= $kat['id']; ?>"><?= htmlspecialchars($kat['name']); ?></option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">SKU <span class="text-danger">*</span></label>
+                    <input type="text" name="sku" class="form-control" placeholder="Contoh: PRD-001" required>
+                </div>
+            </div>
+
             <div class="mb-3">
-                <label class="form-label fw-bold">SKU (Kode Produk)</label>
-                <input type="text" name="sku" class="form-control" placeholder="Contoh: PRD-001" required>
+                <label class="form-label fw-bold">Nama Produk <span class="text-danger">*</span></label>
+                <input type="text" name="name" class="form-control" required>
             </div>
 
             <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label class="form-label fw-bold">Harga</label>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-bold">Harga <span class="text-danger">*</span></label>
                     <input type="number" name="price" class="form-control" required>
                 </div>
-                <div class="col-md-6 mb-3">
-                    <label class="form-label fw-bold">Stok Awal</label>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-bold">Stok <span class="text-danger">*</span></label>
                     <input type="number" name="stock" class="form-control" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-bold">Minimal Stok</label>
+                    <input type="number" name="min_stock" class="form-control" value="5" required>
                 </div>
             </div>
 

@@ -40,6 +40,15 @@ $query = $conn->query("
         .table thead th { background: #29245c; color: white; padding: 14px 12px; font-weight: 600; white-space: nowrap; }
         .table tbody td { padding: 13px 12px; vertical-align: middle; }
         .table tbody tr:hover { background: #f5f4fb; }
+
+                .badge-role {
+            background: #eeeaff;
+            color: #5142a5;
+            padding: 7px 11px;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 12px;
+        }
         
         .btn-save { background: #ffad42; color: #29245c; border: none; border-radius: 7px; padding: 10px 15px; font-size: 13px; font-weight: bold; transition: 0.2s; text-decoration: none; }
         .btn-save:hover { background: #f49a25; color: #29245c; }
@@ -100,8 +109,7 @@ $query = $conn->query("
                             </td>
                             <td><?= htmlspecialchars($data['sku']); ?></td>
                             <td><?= htmlspecialchars($data['name']); ?></td>
-                            <td><span class="badge bg-secondary"><?= htmlspecialchars($data['nama_kategori'] ?? '-'); ?></span></td>
-                            <td>Rp <?= number_format($data['price'], 0, ',', '.'); ?></td>
+                            <td><span class="badge-role"><?= htmlspecialchars($data['nama_kategori'] ?? '-'); ?></span></td>                            <td>Rp <?= number_format($data['price'], 0, ',', '.'); ?></td>
                             <td><?= $data['stock']; ?></td>
                             <td>
                                 <div class="d-flex gap-1">
