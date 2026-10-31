@@ -34,7 +34,6 @@ if (!$result) {
     <title>Daftar Pengguna | FEBMart</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
     <style>
@@ -210,7 +209,6 @@ if (!$result) {
 
 <div class="main-container">
 
-    <!-- Header -->
     <div class="header-section">
 
         <div class="brand">
@@ -257,21 +255,31 @@ if (!$result) {
         </div>
 
         <?php if (isset($_GET['status']) && $_GET['status'] === 'berhasil'): ?>
-
             <div class="alert alert-success" role="alert">
                 <i class="bi bi-check-circle me-1"></i>
                 Pengguna baru berhasil ditambahkan!
             </div>
-
         <?php endif; ?>
 
         <?php if (isset($_GET['status']) && $_GET['status'] === 'edit_berhasil'): ?>
-
             <div class="alert alert-success" role="alert">
                 <i class="bi bi-check-circle me-1"></i>
                 Data pengguna berhasil diperbarui!
             </div>
+        <?php endif; ?>
 
+        <?php if (isset($_GET['status']) && $_GET['status'] === 'hapus_berhasil'): ?>
+            <div class="alert alert-success" role="alert">
+                <i class="bi bi-check-circle me-1"></i>
+                Pengguna berhasil dihapus!
+            </div>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['status']) && $_GET['status'] === 'gagal_hapus'): ?>
+            <div class="alert alert-danger" role="alert">
+                <i class="bi bi-exclamation-circle me-1"></i>
+                Pengguna gagal dihapus atau Anda tidak dapat menghapus akun sendiri!
+            </div>
         <?php endif; ?>
 
         <div class="table-responsive">
@@ -323,17 +331,9 @@ if (!$result) {
 
                                 <td>
                                     <?php if ($user['is_active']): ?>
-
-                                        <span class="badge bg-success">
-                                            Aktif
-                                        </span>
-
+                                        <span class="badge bg-success">Aktif</span>
                                     <?php else: ?>
-
-                                        <span class="badge bg-danger">
-                                            Nonaktif
-                                        </span>
-
+                                        <span class="badge bg-danger">Nonaktif</span>
                                     <?php endif; ?>
                                 </td>
 
@@ -342,10 +342,29 @@ if (!$result) {
                                 </td>
 
                                 <td>
-                                    <a href="edit_user.php?id=<?= $user['id']; ?>"
-                                       class="btn btn-warning btn-sm">
-                                        <i class="bi bi-pencil-square"></i> Edit
-                                    </a>
+                                    <div class="d-flex gap-1">
+
+                                        <a href="edit_user.php?id=<?= $user['id']; ?>"
+                                           class="btn btn-warning btn-sm">
+                                            <i class="bi bi-pencil-square"></i> Edit
+                                        </a>
+
+                                        <form action="proses_hapus_user.php"
+                                              method="POST"
+                                              class="d-inline"
+                                              onsubmit="return confirm('Yakin ingin menghapus pengguna ini?');">
+
+                                            <input type="hidden" name="id"
+                                                   value="<?= $user['id']; ?>">
+
+                                            <button type="submit"
+                                                    class="btn btn-danger btn-sm">
+                                                <i class="bi bi-trash"></i> Hapus
+                                            </button>
+
+                                        </form>
+
+                                    </div>
                                 </td>
 
                             </tr>
