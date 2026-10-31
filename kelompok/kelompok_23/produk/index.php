@@ -3,10 +3,12 @@ session_start();
 if (!isset($_SESSION['user_id'])) { header("Location: ../auth/login.php"); exit; }
 require_once __DIR__ . '/../config/database.php';
 
+$keyword = isset($_GET['cari']) ? $_GET['cari'] : '';
 $query = $conn->query("
     SELECT products.*, categories.name AS nama_kategori 
     FROM products 
     LEFT JOIN categories ON products.category_id = categories.id 
+    WHERE products.name LIKE '%$keyword%'
     ORDER BY products.id DESC
 ");
 ?>
@@ -54,6 +56,26 @@ $query = $conn->query("
         .btn-save:hover { background: #f49a25; color: #29245c; }
         .btn-back { background: #f5f4fb; color: #5142a5; border: 1px solid #ddd; border-radius: 7px; padding: 11px 18px; font-size: 14px; font-weight: bold; text-decoration: none; transition: 0.2s; display: inline-block; margin-top: 20px;}
         .btn-back:hover { background: #e9e6f7; color: #29245c; }
+        .btn-cari {
+            background: #29245c;
+            color: white;
+            border: 1px solid #29245c;
+            font-weight: bold;
+        }
+        .btn-cari:hover {
+            background: #1e1a40;
+            color: white;
+        }
+        .btn-reset {
+            background: #f5f4fb;
+            color: #5142a5;
+            border: 1px solid #ddd;
+            font-weight: bold;
+        }
+        .btn-reset:hover {
+            background: #e9e6f7;
+            color: #29245c;
+        }
         .total-data { background: #f5f4fb; color: #5142a5; padding: 10px 15px; border-radius: 7px; font-size: 13px; font-weight: bold; }
         .copyright { color: #999; font-size: 12px; text-align: center; padding: 20px; border-top: 1px solid #eee; }
     </style>
@@ -81,7 +103,14 @@ $query = $conn->query("
             </div>
         </div>
 
-                <!-- Notifikasi Alert -->
+        <form method="GET" class="mb-4">
+            <div class="input-group" style="max-width: 400px;">
+                <input type="text" name="cari" class="form-control" placeholder="Cari nama produk..." value="<?= htmlspecialchars($keyword); ?>">
+                <button type="submit" class="btn btn-cari">Cari</button>
+                <a href="index.php" class="btn btn-reset">Reset</a>
+            </div>
+        </form>
+
         <?php if (isset($_GET['status']) && $_GET['status'] === 'berhasil'): ?>
             <div class="alert alert-success d-flex align-items-center" role="alert">
                 <i class="bi bi-check-circle-fill me-2"></i>
