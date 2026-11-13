@@ -1,6 +1,5 @@
 <?php
 
-// Koneksi DB otomatis: config lokal -> buat DB/tabel bila perlu.
 mysqli_report(MYSQLI_REPORT_OFF);
 
 require_once __DIR__ . '/setup_helpers.php';
@@ -29,7 +28,6 @@ $db_name     = febmart_sanitize_dbname($dbConfig['dbname']);
 
 $conn = new mysqli($host, $db_username, $db_password, $db_name);
 
-// Buat database otomatis jika belum ada (errno 1049).
 if ($conn->connect_errno === 1049) {
     $tmp = new mysqli($host, $db_username, $db_password);
 
